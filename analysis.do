@@ -422,7 +422,6 @@ if "$site" == "prostate"{
 		CDCC_TOTAL_BEST cat %9.2f \ ///
 		INSURANCE_STATUS cat %9.2f \ ///
 		facility_type_recode cat %9.2f \ ///
-		CROWFLY conts %9.1f \ ///
 		YEAR_OF_DIAGNOSIS conts %9.0f \ ///
 		stage_recode cat %9.2f \ ///
 		n_recode cat %9.2f \ ///
@@ -443,7 +442,6 @@ else{
 		CDCC_TOTAL_BEST cat %9.2f \ ///
 		INSURANCE_STATUS cat %9.2f \ ///
 		facility_type_recode cat %9.2f \ ///
-		CROWFLY conts %9.1f \ ///
 		YEAR_OF_DIAGNOSIS conts %9.0f \ ///
 		stage_recode cat %9.2f \ ///
 		tumor_size_recode cat %9.2f \ ///
