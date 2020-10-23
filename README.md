@@ -5,5 +5,5 @@ Research project examining prevalence of missing data unable to be ascertained f
 To reproduce our analysis:
 - Process PUF files to .dta per NCDB instructions
 - Run `process_missing.do` to convert all missing and unknowns to same sentinel values
-- Categorize all variables of interest in an excel file. Save as column A "variable" and B "category"
+- Categorize all variables of interest in an excel file. Record in column A "variable" and B "category"
 - Run `analysis.do` to reproduce analysis
