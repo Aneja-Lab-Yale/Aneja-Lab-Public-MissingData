@@ -1,6 +1,6 @@
 # Aneja-Lab-Public-MissingData
 
-Research project examining prevalence of missing data unable to be ascertained from the medical record and associated surival outcomes for cancer patients. Manuscript is currently under submission. The project uses the National Cancer Database Participant Use Files (PUF).
+Research project examining prevalence of missing data unable to be ascertained from the medical record and associated survival outcomes for cancer patients. Manuscript is currently under submission. The project uses the National Cancer Database Participant Use Files (PUF).
 
 To reproduce our analysis:
 - Process PUF files to .dta per NCDB instructions
