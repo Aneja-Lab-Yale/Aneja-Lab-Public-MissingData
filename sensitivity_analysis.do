@@ -1,7 +1,7 @@
 /*
 Missing Data Project
 Daniel Yang / Aneja Lab
-Input: dta file, variable_category excel file
+Input: dta file, variable category excel file
 Output: generate patient level analysis and survival figures, saves in output folder
 Created 2020-10-22
 Last Edited 2020-10-22
@@ -9,13 +9,14 @@ Last Edited 2020-10-22
 
 cls
 frames reset
-display "Enter input file path: " _request(puf_file)
-use Data/$puf_file
+display "File path for processed dta file: " _request(puf_file)
+use "$puf_file"
 
-*input the list of variables with their categories
+*use all variables under consideration for sensitivity analysis
+display "File path for variable list: " _request(excel_file)
 frame create missing
 frame missing{
-	import excel "Log/variable_category.xlsx", sheet("Sheet1") firstrow
+	import excel "$excel_file", sheet("Sheet1") firstrow
 	gen miss_count = .
 	gen miss_percent = .
 }
@@ -28,9 +29,8 @@ foreach var of varlist _all{
 	}
 }
 
-*flag variables
 frame missing{
-	gen flag_interest = 1 if miss_percent >=1 & miss_percent <=20
+	gen flag_interest = 1 if miss_percent >=5 & miss_percent <=30
 }
 
 *create flags for if any demographics, cancerspecfic, stage, or treatment variables of interest are missing
@@ -94,6 +94,7 @@ foreach var in `vars_treatment'{
 		replace missing_treatment_flag = 1 if `var' == .
 	}
 }
+
 *generate missing flags
 gen missing_flag = 0
 replace missing_flag = 1 if missing_demographics_flag == 1 | missing_cancerid_flag == 1 | missing_stage_flag == 1 | missing_treatment_flag == 1
@@ -104,9 +105,10 @@ tab missing_cancerid_flag, m
 tab missing_stage_flag, m
 tab missing_treatment_flag, m
 
+
 *---------------survival analysis----------------------------------------------*
 stset DX_LASTCONTACT_DEATH_MONTHS, failure(PUF_VITAL_STATUS==0) //there is no missing values for PUF_VITAL_STATUS
-sts graph, by(missing_flag) risktable(, order(1 "Non-missing:   " 2 "Missing:   ")) tmax(60) xlabel(0(12)60)
+sts graph, by(missing_flag) risktable(, order(1 "Complete:   " 2 "Missing:   ")) tmax(60) xlabel(0(12)60)
 sts test missing_flag, logrank
 sts list, by(missing_flag) at(12 24 36 48 60)
 graph save output/supplement, replace

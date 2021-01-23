@@ -9,13 +9,13 @@ Last Edited 2020-10-22
 
 cls
 frames reset
-display "Enter input file path: " _request(puf_file)
-use Data/$puf_file
+display "File path for processed dta file: " _request(puf_file)
+use "$puf_file"
 
-*input the Excel list of variables with their categories
+display "File path for variable list: " _request(excel_file)
 frame create missing
 frame missing{
-	import excel "Log/variable_category.xlsx", sheet("Sheet1") firstrow
+	import excel "$excel_file", sheet("Sheet1") firstrow
 	gen miss_count = .
 	gen miss_percent = .
 }
@@ -28,8 +28,7 @@ foreach var of varlist _all{
 	}
 }
 
-*-----flag variables of interest, which are flagged in "missing" dataframe-----*
-display "What disease site are you generating figures for: " _request(site)
+display "Enter disease site (lung / breast / prostate): " _request(site)
 if "$site"=="lung" | "$site"=="breast" | "$site"=="prostate" {
 	display "Continue for $site"
 }
@@ -38,8 +37,9 @@ else{
 	exit
 }
 
+*variables of interest stored in missing dataframe
 frame missing{
-	gen flag_interest = 1 if miss_count != 0
+	gen flag_interest = 1
 	replace flag_interest = 0 if variable == "DX_CHEMO_STARTED_DAYS" ///
 		| variable == "DX_DEFSURG_STARTED_DAYS" ///
 		| variable == "DX_HORMONE_STARTED_DAYS" ///
@@ -218,30 +218,21 @@ frame missing{
 	replace graph_order = 3 if category == "Stage"
 	replace graph_order = 4 if category == "Treatment"
 	replace graph_order = 5 if category == "Outcomes"
-	*all variables
-	graph pie, over(category) sort(graph_order) legend(rows(1) size(vsmall)) plabel(_all sum)
-	graph save output/1A_varsall, replace
-	*variables with any missing
-	preserve
-	keep if miss_count != 0
-	graph pie, over(category) sort(graph_order) legend(rows(1) size(vsmall)) plabel(_all sum)
-	graph save output/1B_varsmiss, replace
-	restore
-	*variables of interest; outcomes variables not used for patient-level analysis
+	*variables of interest; outcomes variables not used to flag patient-level missingness
 	preserve
 	replace flag_interest = 0 if category == "Outcomes"
 	keep if miss_count != 0 & flag_interest == 1
 	graph pie, over(category) sort(graph_order) legend(rows(1) size(vsmall)) plabel(_all sum)
-	graph save output/1C_varsinterest, replace
+	graph save output/varsinterest, replace
 	restore	
 }
 
 *---------------survival analysis----------------------------------------------*
 stset DX_LASTCONTACT_DEATH_MONTHS, failure(PUF_VITAL_STATUS==0) //there is no missing values for PUF_VITAL_STATUS
-sts graph, by(missing_flag) risktable(, order(1 "Non-missing:   " 2 "Missing:   ")) tmax(60) xlabel(0(12)60)
+sts graph, by(missing_flag) risktable(, order(1 "Complete:   " 2 "Missing:   ")) tmax(60) xlabel(0(12)60)
 sts test missing_flag, logrank
 sts list, by(missing_flag) at(12 24 36 48 60)
-graph save output/2_OS, replace
+graph save output/OS, replace
 
 
 *non-metastatic (stage (0), I, II, III) vs metastatic (stage IV) survival impact
@@ -267,7 +258,7 @@ sts graph, by(met_missing) risktable(, order(1 "Group 1:   " 2 "Group 2:   " 3 "
 sts test met_missing if inlist(met_missing, 1, 2)
 sts test met_missing if inlist(met_missing, 3, 4)
 sts list, by(met_missing) at(12 24 36 48 60)
-graph save output/3_OS_met, replace
+graph save output/OS_met, replace
 
 
 /*
@@ -410,13 +401,13 @@ graph save output/s7_os_chemo, replace
 
 
 
-*generate baseline patient, tumor, and treatment characteristics table (Table 2)
+*generate baseline patient, tumor, and treatment characteristics table
 preserve
 *skip tumor_size_recode for prostate
 if "$site" == "prostate"{
 	quietly: table1_mc, by(missing_flag) vars( ///
 		AGE conts %9.0f \ ///
-		SEX cat %9.0f \ ///
+		SEX cat %9.2f \ ///
 		race_recode cat %9.2f \ ///
 		hispanic_recode cat %9.2f \ ///
 		CDCC_TOTAL_BEST cat %9.2f \ ///
@@ -436,7 +427,7 @@ if "$site" == "prostate"{
 else{
 	quietly: table1_mc, by(missing_flag) vars( ///
 		AGE conts %9.0f \ ///
-		SEX cat %9.0f \ ///
+		SEX cat %9.2f \ ///
 		race_recode cat %9.2f \ ///
 		hispanic_recode cat %9.2f \ ///
 		CDCC_TOTAL_BEST cat %9.2f \ ///
