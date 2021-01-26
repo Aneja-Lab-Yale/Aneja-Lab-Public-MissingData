@@ -30,7 +30,7 @@ foreach var of varlist _all{
 }
 
 frame missing{
-	gen flag_interest = 1 if miss_percent >=5 & miss_percent <=30
+	gen flag_interest = 1 if miss_percent >=1 & miss_percent <=20
 }
 
 *create flags for if any demographics, cancerspecfic, stage, or treatment variables of interest are missing
